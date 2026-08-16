@@ -33,7 +33,7 @@ export default function Index() {
 
   return (
     <s-page heading="Wishlist analytics">
-      <s-button slot="primary-action" href="/app/analytics/export">
+      <s-button slot="primary-action" href="/app/analytics/export" target="_blank">
         Export CSV
       </s-button>
 
