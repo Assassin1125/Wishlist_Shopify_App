@@ -1,5 +1,5 @@
 client_id = "9c6563e1e7c06d1a6abb44fd9f2cba00"
-application_url = "https://example.com"
+application_url = "https://wishlist-shopify-app-ya92.onrender.com"
 embedded = true
 name = "wishlist"
 
@@ -7,7 +7,7 @@ name = "wishlist"
 scopes = "write_products,write_metaobjects,write_metaobject_definitions,read_orders"
 
 [app_proxy]
-url = "https://example.com"
+url = "https://wishlist-shopify-app-ya92.onrender.com"
 subpath = "wishlist"
 prefix = "apps"
 
@@ -36,8 +36,7 @@ api_version = "2026-10"
   shop_deletion_url = "/webhooks/shop/redact"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://wishlist-shopify-app-ya92.onrender.com/api/auth" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
