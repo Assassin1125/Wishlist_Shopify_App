@@ -1,0 +1,27 @@
+{
+  "wishlist": {
+    "button": {
+      "add": "Add to wishlist",
+      "remove": "Remove from wishlist"
+    },
+    "drawer": {
+      "title": "My Wishlist",
+      "close": "Close",
+      "empty": "Your wishlist is empty.",
+      "move_to_cart": "Move to cart",
+      "remove": "Remove",
+      "in_stock": "In stock",
+      "out_of_stock": "Out of stock",
+      "loading": "Adding…"
+    },
+    "toast": {
+      "added": "Added to wishlist",
+      "removed": "Removed from wishlist",
+      "moved_to_cart": "Added to cart",
+      "error": "Something went wrong - please try again"
+    },
+    "trigger": {
+      "label": "Open wishlist"
+    }
+  }
+}

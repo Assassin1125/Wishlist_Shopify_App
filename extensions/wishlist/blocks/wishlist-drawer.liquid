@@ -1,0 +1,103 @@
+<style>
+  :root {
+    --wishlist-accent: {{ block.settings.accent_color }};
+  }
+</style>
+
+<script type="application/json" id="wishlist-context">
+  {
+    "shopDomain": {{ shop.permanent_domain | json }},
+    "customerId": {{ customer.id | json }}
+  }
+</script>
+<script type="application/json" id="wishlist-i18n">
+  {
+    "moveToCart": {{ 'wishlist.drawer.move_to_cart' | t | json }},
+    "remove": {{ 'wishlist.drawer.remove' | t | json }},
+    "inStock": {{ 'wishlist.drawer.in_stock' | t | json }},
+    "outOfStock": {{ 'wishlist.drawer.out_of_stock' | t | json }},
+    "loading": {{ 'wishlist.drawer.loading' | t | json }},
+    "addedToast": {{ 'wishlist.toast.added' | t | json }},
+    "removedToast": {{ 'wishlist.toast.removed' | t | json }},
+    "movedToCartToast": {{ 'wishlist.toast.moved_to_cart' | t | json }},
+    "errorToast": {{ 'wishlist.toast.error' | t | json }}
+  }
+</script>
+
+<div
+  id="wishlist-drawer"
+  class="wishlist-drawer wishlist-drawer--{{ block.settings.drawer_position }}"
+>
+  <div class="wishlist-drawer__overlay" data-wishlist-drawer-close></div>
+  <div class="wishlist-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ 'wishlist.drawer.title' | t }}">
+    <div class="wishlist-drawer__header">
+      <h2 class="wishlist-drawer__title">{{ 'wishlist.drawer.title' | t }}</h2>
+      <button type="button" class="wishlist-drawer__close" data-wishlist-drawer-close aria-label="{{ 'wishlist.drawer.close' | t }}">&times;</button>
+    </div>
+    <div class="wishlist-drawer__body">
+      <div class="wishlist-drawer__empty" data-wishlist-empty>
+        <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon' %}</span>
+        <p>{{ 'wishlist.drawer.empty' | t }}</p>
+      </div>
+      <ul class="wishlist-drawer__list" data-wishlist-list hidden></ul>
+    </div>
+  </div>
+</div>
+
+{% if block.settings.show_floating_trigger %}
+  <button
+    type="button"
+    class="wishlist-drawer-trigger wishlist-drawer-trigger--{{ block.settings.floating_trigger_position }}"
+    data-wishlist-drawer-open
+    aria-label="{{ 'wishlist.trigger.label' | t }}"
+  >
+    {% render 'wishlist-heart-icon' %}
+    <span class="wishlist-drawer-trigger__count" data-wishlist-count hidden>0</span>
+  </button>
+{% endif %}
+
+{{ 'wishlist.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'wishlist.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Wishlist drawer",
+  "target": "body",
+  "settings": [
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#e0245e",
+      "info": "Used for the active heart, item count badge, and notifications across every wishlist block."
+    },
+    {
+      "type": "select",
+      "id": "drawer_position",
+      "label": "Drawer slides in from",
+      "default": "right",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_floating_trigger",
+      "label": "Show floating wishlist button",
+      "default": true,
+      "info": "Turn off if you've added the \"Wishlist header icon\" block to your header instead."
+    },
+    {
+      "type": "select",
+      "id": "floating_trigger_position",
+      "label": "Floating button position",
+      "default": "bottom-right",
+      "options": [
+        { "value": "bottom-right", "label": "Bottom right" },
+        { "value": "bottom-left", "label": "Bottom left" }
+      ]
+    }
+  ]
+}
+{% endschema %}

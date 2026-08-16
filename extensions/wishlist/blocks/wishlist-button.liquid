@@ -1,0 +1,45 @@
+<button
+  type="button"
+  class="wishlist-button wishlist-button--{{ block.settings.size }} wishlist-button--{{ block.settings.style }}"
+  data-wishlist-button
+  data-product-id="{{ block.settings.product.id }}"
+  data-variant-id="{{ block.settings.product.selected_or_first_available_variant.id }}"
+  aria-pressed="false"
+  aria-label="{{ 'wishlist.button.add' | t }}"
+  data-label-add="{{ 'wishlist.button.add' | t | escape }}"
+  data-label-remove="{{ 'wishlist.button.remove' | t | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {% render 'wishlist-heart-icon' %}
+</button>
+
+{% schema %}
+{
+  "name": "Wishlist button",
+  "target": "section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "autofill": true },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "Size",
+      "default": "medium",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "default": "filled",
+      "options": [
+        { "value": "filled", "label": "Filled circle" },
+        { "value": "minimal", "label": "Minimal (icon only)" }
+      ]
+    }
+  ]
+}
+{% endschema %}
