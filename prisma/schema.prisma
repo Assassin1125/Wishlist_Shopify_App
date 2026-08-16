@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  shopId     String
+  customerId String?
+  guestToken String?
+  productId  String
+  variantId  String
+  addedAt    DateTime @default(now())
+
+  @@unique([shopId, customerId, variantId])
+  @@unique([shopId, guestToken, variantId])
+  @@index([shopId, customerId])
+  @@index([shopId, productId])
+}
+
+model ProductSnapshot {
+  id        String   @id @default(cuid())
+  shopId    String
+  productId String
+  variantId String
+  handle    String?
+  title     String
+  imageUrl  String?
+  price     Decimal  @db.Decimal(10, 2)
+  currency  String
+  available Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopId, productId, variantId])
+  @@index([shopId, productId])
+}
+
+enum WishlistEventType {
+  ADDED
+  REMOVED
+  MOVED_TO_CART
+  PURCHASED
+}
+
+model WishlistEvent {
+  id         String            @id @default(cuid())
+  shopId     String
+  customerId String?
+  guestToken String?
+  productId  String
+  variantId  String
+  type       WishlistEventType
+  createdAt  DateTime          @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([shopId, type, customerId, variantId])
+  @@index([shopId, productId])
+}
