@@ -106,7 +106,7 @@ export async function getOrCreateProductSnapshot(
       },
     },
   });
-  if (existing) return existing;
+  if (existing && existing.selectedOptions !== null) return existing;
 
   return upsertProductSnapshot(admin, shopId, productId, variantId);
 }

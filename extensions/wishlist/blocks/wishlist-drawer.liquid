@@ -4,10 +4,26 @@
   }
 </style>
 
+{% assign icon_style = shop.metafields['$app']['icon_style'] | default: 'heart' %}
+{% assign presentation_mode = shop.metafields['$app']['presentation_mode'] | default: 'drawer' %}
+{% assign trigger_position = shop.metafields['$app']['trigger_position'] | default: 'bottom-right' %}
+{% assign header_icon_position = shop.metafields['$app']['header_icon_position'] | default: 'right' %}
+
+{% assign trigger_enabled = true %}
+{% if shop.metafields['$app']['trigger_enabled'] == false %}
+  {% assign trigger_enabled = false %}
+{% endif %}
+
+{% assign header_icon_enabled = false %}
+{% if shop.metafields['$app']['header_icon_enabled'] == true %}
+  {% assign header_icon_enabled = true %}
+{% endif %}
+
 <script type="application/json" id="wishlist-context">
   {
     "shopDomain": {{ shop.permanent_domain | json }},
-    "customerId": {{ customer.id | json }}
+    "customerId": {{ customer.id | json }},
+    "presentationMode": {{ presentation_mode | json }}
   }
 </script>
 <script type="application/json" id="wishlist-i18n">
@@ -24,35 +40,49 @@
   }
 </script>
 
-<div
-  id="wishlist-drawer"
-  class="wishlist-drawer wishlist-drawer--{{ block.settings.drawer_position }}"
->
-  <div class="wishlist-drawer__overlay" data-wishlist-drawer-close></div>
-  <div class="wishlist-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ 'wishlist.drawer.title' | t }}">
-    <div class="wishlist-drawer__header">
-      <h2 class="wishlist-drawer__title">{{ 'wishlist.drawer.title' | t }}</h2>
-      <button type="button" class="wishlist-drawer__close" data-wishlist-drawer-close aria-label="{{ 'wishlist.drawer.close' | t }}">&times;</button>
-    </div>
-    <div class="wishlist-drawer__body">
-      <div class="wishlist-drawer__empty" data-wishlist-empty>
-        <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon' %}</span>
-        <p>{{ 'wishlist.drawer.empty' | t }}</p>
+{% unless presentation_mode == 'page' %}
+  <div
+    id="wishlist-drawer"
+    class="wishlist-drawer wishlist-drawer--{{ block.settings.drawer_position }}"
+  >
+    <div class="wishlist-drawer__overlay" data-wishlist-drawer-close></div>
+    <div class="wishlist-drawer__panel" role="dialog" aria-modal="true" aria-label="{{ 'wishlist.drawer.title' | t }}">
+      <div class="wishlist-drawer__header">
+        <h2 class="wishlist-drawer__title">{{ 'wishlist.drawer.title' | t }}</h2>
+        <button type="button" class="wishlist-drawer__close" data-wishlist-drawer-close aria-label="{{ 'wishlist.drawer.close' | t }}">&times;</button>
       </div>
-      <ul class="wishlist-drawer__list" data-wishlist-list hidden></ul>
+      <div class="wishlist-drawer__body">
+        <div class="wishlist-drawer__empty" data-wishlist-empty>
+          <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon', style: icon_style %}</span>
+          <p>{{ 'wishlist.drawer.empty' | t }}</p>
+        </div>
+        <ul class="wishlist-drawer__list" data-wishlist-list hidden></ul>
+      </div>
     </div>
   </div>
-</div>
+{% endunless %}
 
-{% if block.settings.show_floating_trigger %}
+{% if trigger_enabled %}
   <button
     type="button"
-    class="wishlist-drawer-trigger wishlist-drawer-trigger--{{ block.settings.floating_trigger_position }}"
+    class="wishlist-drawer-trigger wishlist-drawer-trigger--{{ trigger_position }}"
     data-wishlist-drawer-open
     aria-label="{{ 'wishlist.trigger.label' | t }}"
   >
-    {% render 'wishlist-heart-icon' %}
+    {% render 'wishlist-heart-icon', style: icon_style %}
     <span class="wishlist-drawer-trigger__count" data-wishlist-count hidden>0</span>
+  </button>
+{% endif %}
+
+{% if header_icon_enabled %}
+  <button
+    type="button"
+    class="wishlist-header-icon wishlist-header-icon--{{ header_icon_position }}"
+    data-wishlist-drawer-open
+    aria-label="{{ 'wishlist.trigger.label' | t }}"
+  >
+    {% render 'wishlist-heart-icon', style: icon_style %}
+    <span class="wishlist-header-icon__count" data-wishlist-count hidden>0</span>
   </button>
 {% endif %}
 
@@ -61,7 +91,7 @@
 
 {% schema %}
 {
-  "name": "Wishlist drawer",
+  "name": "Wishlist",
   "target": "body",
   "settings": [
     {
@@ -69,7 +99,7 @@
       "id": "accent_color",
       "label": "Accent color",
       "default": "#e0245e",
-      "info": "Used for the active heart, item count badge, and notifications across every wishlist block."
+      "info": "Used for the active heart, item count badges, and notifications across every wishlist block."
     },
     {
       "type": "select",
@@ -79,24 +109,12 @@
       "options": [
         { "value": "right", "label": "Right" },
         { "value": "left", "label": "Left" }
-      ]
+      ],
+      "info": "Only applies when the wishlist is set to open as a drawer in the app's Settings page."
     },
     {
-      "type": "checkbox",
-      "id": "show_floating_trigger",
-      "label": "Show floating wishlist button",
-      "default": true,
-      "info": "Turn off if you've added the \"Wishlist header icon\" block to your header instead."
-    },
-    {
-      "type": "select",
-      "id": "floating_trigger_position",
-      "label": "Floating button position",
-      "default": "bottom-right",
-      "options": [
-        { "value": "bottom-right", "label": "Bottom right" },
-        { "value": "bottom-left", "label": "Bottom left" }
-      ]
+      "type": "paragraph",
+      "content": "The floating button, header icon, and drawer/page behavior are all controlled from the app's Settings page in your Shopify admin."
     }
   ]
 }

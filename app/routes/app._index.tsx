@@ -29,6 +29,14 @@ function formatPercent(rate: number) {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
+function formatShortDate(isoDate: string) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function Index() {
   const { totalAdds, topProducts, conversion, trend } = useLoaderData<typeof loader>();
   const maxTrendCount = Math.max(1, ...trend.map((day) => day.count));
@@ -96,28 +104,63 @@ export default function Index() {
       </s-section>
 
       <s-section heading="Wishlist adds, last 30 days">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            gap: "2px",
-            height: "120px",
-            overflowX: "auto",
-          }}
-        >
-          {trend.map((day) => (
+        <div style={{ display: "flex", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              height: "120px",
+              fontSize: "11px",
+              color: "#666",
+              textAlign: "right",
+              paddingBottom: "1px",
+            }}
+          >
+            <span>{maxTrendCount}</span>
+            <span>{Math.round(maxTrendCount / 2)}</span>
+            <span>0</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
-              key={day.date}
-              title={`${day.date}: ${day.count}`}
               style={{
-                flex: "1 0 6px",
-                minWidth: "6px",
-                height: `${Math.max(2, (day.count / maxTrendCount) * 100)}%`,
-                background: "#1a1a1a",
-                borderRadius: "2px 2px 0 0",
+                display: "flex",
+                alignItems: "flex-end",
+                gap: "2px",
+                height: "120px",
+                overflowX: "auto",
+                borderLeft: "1px solid #e5e5e5",
+                borderBottom: "1px solid #e5e5e5",
               }}
-            />
-          ))}
+            >
+              {trend.map((day) => (
+                <div
+                  key={day.date}
+                  title={`${day.date}: ${day.count}`}
+                  style={{
+                    flex: "1 0 6px",
+                    minWidth: "6px",
+                    height: `${Math.max(2, (day.count / maxTrendCount) * 100)}%`,
+                    background: "#1a1a1a",
+                    borderRadius: "2px 2px 0 0",
+                  }}
+                />
+              ))}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "11px",
+                color: "#666",
+                marginTop: "4px",
+              }}
+            >
+              <span>{formatShortDate(trend[0].date)}</span>
+              <span>{formatShortDate(trend[Math.floor(trend.length / 2)].date)}</span>
+              <span>{formatShortDate(trend[trend.length - 1].date)}</span>
+            </div>
+          </div>
         </div>
       </s-section>
 

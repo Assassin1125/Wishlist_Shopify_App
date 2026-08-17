@@ -8,7 +8,7 @@
   var ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
   var TOAST_DURATION_MS = 2400;
 
-  var context = { customerId: null, shopDomain: null };
+  var context = { customerId: null, shopDomain: null, presentationMode: "drawer" };
   var translations = {
     moveToCart: "Move to cart",
     remove: "Remove",
@@ -138,7 +138,10 @@
 
   function resolveVariantId(button) {
     var form = button.closest("form");
-    var input = form ? form.querySelector('input[name="id"]') : null;
+    var input = form ? form.querySelector('[name="id"]') : null;
+    if (!input || !input.value) {
+      input = document.querySelector('form[action*="/cart/add"] [name="id"]');
+    }
     return input && input.value ? input.value : button.dataset.variantId;
   }
 
@@ -162,11 +165,6 @@
     document.querySelectorAll("[data-wishlist-button]").forEach(updateButtonState);
   }
 
-  function isDrawerOpen() {
-    var drawer = document.getElementById("wishlist-drawer");
-    return !!drawer && drawer.classList.contains("is-open");
-  }
-
   function renderDrawerFromState() {
     renderDrawerItems(Array.from(state.items.values()).reverse());
   }
@@ -177,7 +175,7 @@
     });
     updateCountBadge();
     document.dispatchEvent(new CustomEvent("wishlist:changed", { detail: { variantId: variantGid } }));
-    if (isDrawerOpen()) renderDrawerFromState();
+    renderDrawerFromState();
   }
 
   async function fetchAndSyncWishlist() {
@@ -228,7 +226,7 @@
         });
         var entry = state.items.get(variantGid);
         if (entry) entry.snapshot = data.snapshot;
-        if (isDrawerOpen()) renderDrawerFromState();
+        renderDrawerFromState();
       }
     } catch (e) {
       console.error("[wishlist] toggle failed", e);
@@ -421,7 +419,11 @@
     }
 
     if (target.closest("[data-wishlist-drawer-open]")) {
-      openDrawer();
+      if (context.presentationMode === "page") {
+        window.location.href = "/apps/wishlist/page";
+      } else {
+        openDrawer();
+      }
       return;
     }
 
