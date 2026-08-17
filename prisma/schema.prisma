@@ -49,6 +49,8 @@ model ProductSnapshot {
   variantId String
   handle    String?
   title     String
+  variantTitle String?
+  selectedOptions Json?
   imageUrl  String?
   price     Decimal  @db.Decimal(10, 2)
   currency  String

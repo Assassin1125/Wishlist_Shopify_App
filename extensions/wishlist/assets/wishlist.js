@@ -136,8 +136,14 @@
     });
   }
 
+  function resolveVariantId(button) {
+    var form = button.closest("form");
+    var input = form ? form.querySelector('input[name="id"]') : null;
+    return input && input.value ? input.value : button.dataset.variantId;
+  }
+
   function updateButtonState(button) {
-    var variantId = toVariantGid(button.dataset.variantId);
+    var variantId = toVariantGid(resolveVariantId(button));
     var pressed = state.items.has(variantId);
     var wasPressed = button.classList.contains("is-active");
     button.setAttribute("aria-pressed", String(pressed));
@@ -167,7 +173,7 @@
 
   function syncButtonsForVariant(variantGid) {
     document.querySelectorAll('[data-wishlist-button]').forEach(function (button) {
-      if (toVariantGid(button.dataset.variantId) === variantGid) updateButtonState(button);
+      if (toVariantGid(resolveVariantId(button)) === variantGid) updateButtonState(button);
     });
     updateCountBadge();
     document.dispatchEvent(new CustomEvent("wishlist:changed", { detail: { variantId: variantGid } }));
@@ -189,12 +195,6 @@
     } catch (e) {
       console.error("[wishlist] failed to load wishlist", e);
     }
-  }
-
-  function resolveVariantId(button) {
-    var form = button.closest("form");
-    var input = form ? form.querySelector('input[name="id"]') : null;
-    return input && input.value ? input.value : button.dataset.variantId;
   }
 
   async function toggleWishlist(button) {
@@ -346,10 +346,25 @@
           "</a>"
         : '<span class="wishlist-drawer__item-title">' + escapeHtml(snapshot.title) + "</span>";
 
+      var variantTitleMarkup = "";
+      if (Array.isArray(snapshot.selectedOptions) && snapshot.selectedOptions.length > 0) {
+        variantTitleMarkup =
+          '<p class="wishlist-drawer__item-variant">' +
+          snapshot.selectedOptions
+            .map(function (option) {
+              return escapeHtml(option.name) + ": " + escapeHtml(option.value);
+            })
+            .join(" · ") +
+          "</p>";
+      } else if (snapshot.variantTitle) {
+        variantTitleMarkup = '<p class="wishlist-drawer__item-variant">' + escapeHtml(snapshot.variantTitle) + "</p>";
+      }
+
       li.innerHTML =
         imageMarkup +
         '<div class="wishlist-drawer__details">' +
         titleMarkup +
+        variantTitleMarkup +
         '<p class="wishlist-drawer__item-price">' +
         escapeHtml(formatMoney(snapshot.price, snapshot.currency)) +
         "</p>" +
@@ -438,6 +453,13 @@
 
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") closeDrawer();
+  });
+
+  document.addEventListener("change", function (event) {
+    var form = event.target.closest("form");
+    if (!form) return;
+    var button = form.querySelector("[data-wishlist-button]");
+    if (button) updateButtonState(button);
   });
 
   async function init() {

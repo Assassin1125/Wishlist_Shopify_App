@@ -404,6 +404,12 @@ a.wishlist-drawer__item-title:hover {
   text-decoration: underline;
 }
 
+.wishlist-drawer__item-variant {
+  margin: 0 0 5px;
+  font-size: 14px;
+  color: #666;
+}
+
 .wishlist-drawer__item-price {
   margin: 0 0 5px;
   font-size: 17px;

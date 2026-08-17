@@ -26,8 +26,13 @@ export async function upsertProductSnapshot(
       }
       productVariant(id: $id) {
         id
+        title
         availableForSale
         price
+        selectedOptions {
+          name
+          value
+        }
         product {
           id
           title
@@ -47,6 +52,11 @@ export async function upsertProductSnapshot(
     throw Response.json({ error: "Product variant not found" }, { status: 404 });
   }
 
+  const variantTitle = variant.title && variant.title !== "Default Title" ? variant.title : null;
+  const selectedOptions: Array<{ name: string; value: string }> = Array.isArray(variant.selectedOptions)
+    ? variant.selectedOptions.filter((option: { name: string; value: string }) => option.value !== "Default Title")
+    : [];
+
   return db.productSnapshot.upsert({
     where: {
       shopId_productId_variantId: {
@@ -58,6 +68,8 @@ export async function upsertProductSnapshot(
     update: {
       handle: variant.product.handle,
       title: variant.product.title,
+      variantTitle,
+      selectedOptions,
       imageUrl: variant.product.featuredImage?.url ?? null,
       price: variant.price,
       currency: data.shop.currencyCode,
@@ -69,6 +81,8 @@ export async function upsertProductSnapshot(
       variantId: variantGid,
       handle: variant.product.handle,
       title: variant.product.title,
+      variantTitle,
+      selectedOptions,
       imageUrl: variant.product.featuredImage?.url ?? null,
       price: variant.price,
       currency: data.shop.currencyCode,
