@@ -455,12 +455,17 @@
     if (event.key === "Escape") closeDrawer();
   });
 
-  document.addEventListener("change", function (event) {
-    var form = event.target.closest("form");
-    if (!form) return;
-    var button = form.querySelector("[data-wishlist-button]");
-    if (button) updateButtonState(button);
-  });
+  var lastKnownVariantByButton = new WeakMap();
+
+  setInterval(function () {
+    document.querySelectorAll("[data-wishlist-button]").forEach(function (button) {
+      var current = resolveVariantId(button);
+      if (lastKnownVariantByButton.get(button) !== current) {
+        lastKnownVariantByButton.set(button, current);
+        updateButtonState(button);
+      }
+    });
+  }, 400);
 
   async function init() {
     context = parseJsonScript("wishlist-context") || context;
