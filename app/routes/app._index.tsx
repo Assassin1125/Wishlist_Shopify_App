@@ -1,7 +1,9 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
+import { useState } from "react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import {
   getTotalAdds,
   getMostWishlistedProducts,
@@ -30,10 +32,38 @@ function formatPercent(rate: number) {
 export default function Index() {
   const { totalAdds, topProducts, conversion, trend } = useLoaderData<typeof loader>();
   const maxTrendCount = Math.max(1, ...trend.map((day) => day.count));
+  const shopify = useAppBridge();
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const token = await shopify.idToken();
+      const res = await fetch("/app/analytics/export", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Export failed with ${res.status}`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "wishlisted-products.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("[wishlist] CSV export failed", error);
+      shopify.toast.show("Export failed — please try again", { isError: true });
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <s-page heading="Wishlist analytics">
-      <s-button slot="primary-action" href="/app/analytics/export" target="_blank">
+      <s-button slot="primary-action" onClick={handleExport} {...(exporting ? { loading: true } : {})}>
         Export CSV
       </s-button>
 
