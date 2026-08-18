@@ -79,9 +79,11 @@ export default function Settings() {
   const iconFetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [settings, setSettings] = useState<WishlistSettings>(initial);
+  const [savedSettings, setSavedSettings] = useState<WishlistSettings>(initial);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saving = fetcher.state !== "idle";
   const uploadingIcon = iconFetcher.state !== "idle";
+  const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
 
   useEffect(() => {
     if (loadError) {
@@ -95,6 +97,7 @@ export default function Settings() {
     if (!fetcher.data) return;
     if ("ok" in fetcher.data && fetcher.data.ok) {
       shopify.toast.show("Settings saved");
+      setSavedSettings(fetcher.data.settings);
     }
     if ("error" in fetcher.data && fetcher.data.error) {
       shopify.toast.show(fetcher.data.error, { isError: true });
@@ -105,6 +108,7 @@ export default function Settings() {
     if (!iconFetcher.data) return;
     if ("settings" in iconFetcher.data && iconFetcher.data.settings) {
       setSettings(iconFetcher.data.settings);
+      setSavedSettings(iconFetcher.data.settings);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
     if ("error" in iconFetcher.data && iconFetcher.data.error) {
@@ -145,7 +149,12 @@ export default function Settings() {
 
   return (
     <s-page heading="Settings">
-      <s-button slot="primary-action" onClick={handleSave} {...(saving ? { loading: true } : {})}>
+      <s-button
+        slot="primary-action"
+        onClick={handleSave}
+        {...(saving ? { loading: true } : {})}
+        {...(!isDirty ? { disabled: true } : {})}
+      >
         Save
       </s-button>
 
