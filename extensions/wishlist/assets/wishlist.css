@@ -384,7 +384,7 @@ body.wishlist-drawer-open {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
@@ -563,7 +563,7 @@ a.wishlist-drawer__item-title:hover {
   background: #1a1a1a;
   color: #fff;
   border-radius: 5px;
-  padding: 9px 18px;
+  padding: 7px 18px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
