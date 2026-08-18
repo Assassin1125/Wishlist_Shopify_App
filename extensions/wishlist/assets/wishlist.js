@@ -472,7 +472,13 @@
   function findHeaderAccountLink() {
     var header = document.querySelector("header, [role='banner'], .header, .site-header");
     var scope = header || document;
-    return scope.querySelector("a[href*='/account'], a[href*='/customer_authentication'], a[href*='/challenge']");
+    var candidates = scope.querySelectorAll(
+      "a[href*='/account'], a[href*='/customer_authentication'], a[href*='/challenge']"
+    );
+    for (var i = 0; i < candidates.length; i++) {
+      if (candidates[i].offsetParent !== null) return candidates[i];
+    }
+    return candidates[0] || null;
   }
 
   function placeHeaderIcon() {
