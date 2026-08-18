@@ -1,6 +1,18 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 
+const TRANSLATIONS = {
+  moveToCart: "Move to cart",
+  remove: "Remove",
+  inStock: "In stock",
+  outOfStock: "Out of stock",
+  loading: "Adding…",
+  addedToast: "Added to wishlist",
+  removedToast: "Removed from wishlist",
+  movedToCartToast: "Added to cart",
+  errorToast: "Something went wrong - please try again",
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, liquid } = await authenticate.public.appProxy(request);
   if (!session) {
@@ -16,23 +28,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     </script>
     <script type="application/json" id="wishlist-i18n">
-      {
-        "moveToCart": {{ 'wishlist.drawer.move_to_cart' | t | json }},
-        "remove": {{ 'wishlist.drawer.remove' | t | json }},
-        "inStock": {{ 'wishlist.drawer.in_stock' | t | json }},
-        "outOfStock": {{ 'wishlist.drawer.out_of_stock' | t | json }},
-        "loading": {{ 'wishlist.drawer.loading' | t | json }},
-        "addedToast": {{ 'wishlist.toast.added' | t | json }},
-        "removedToast": {{ 'wishlist.toast.removed' | t | json }},
-        "movedToCartToast": {{ 'wishlist.toast.moved_to_cart' | t | json }},
-        "errorToast": {{ 'wishlist.toast.error' | t | json }}
-      }
+      ${JSON.stringify(TRANSLATIONS)}
     </script>
 
     <div class="wishlist-page">
-      <h1 class="wishlist-page__title">{{ 'wishlist.drawer.title' | t }}</h1>
+      <h1 class="wishlist-page__title">My Wishlist</h1>
       <div class="wishlist-page__empty" data-wishlist-empty>
-        <p>{{ 'wishlist.drawer.empty' | t }}</p>
+        <p>Your wishlist is empty.</p>
       </div>
       <ul class="wishlist-page__list wishlist-drawer__list" data-wishlist-list hidden></ul>
     </div>
