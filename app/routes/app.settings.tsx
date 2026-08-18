@@ -4,13 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { getWishlistSettings, saveWishlistSettings, uploadCustomIcon } from "../lib/settings.server";
+import { DEFAULT_SETTINGS, getWishlistSettings, saveWishlistSettings, uploadCustomIcon } from "../lib/settings.server";
 import type { WishlistSettings } from "../lib/settings.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
-  const settings = await getWishlistSettings(admin);
-  return { settings };
+  try {
+    const settings = await getWishlistSettings(admin);
+    return { settings };
+  } catch (error) {
+    console.error("[wishlist] failed to load settings", error);
+    return { settings: DEFAULT_SETTINGS, loadError: true };
+  }
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -18,50 +23,51 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  if (intent === "uploadIcon") {
-    const file = formData.get("file");
-    if (!(file instanceof File) || file.size === 0) {
-      return { error: "Choose an image file to upload." };
-    }
-    const current = await getWishlistSettings(admin);
-    try {
+  try {
+    if (intent === "uploadIcon") {
+      const file = formData.get("file");
+      if (!(file instanceof File) || file.size === 0) {
+        return { error: "Choose an image file to upload." };
+      }
+      const current = await getWishlistSettings(admin);
       const customIconUrl = await uploadCustomIcon(admin, file);
       const settings: WishlistSettings = { ...current, iconStyle: "custom", customIconUrl };
       await saveWishlistSettings(admin, settings);
       return { ok: true, settings };
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "Icon upload failed." };
     }
-  }
 
-  if (intent === "removeIcon") {
+    if (intent === "removeIcon") {
+      const current = await getWishlistSettings(admin);
+      const settings: WishlistSettings = {
+        ...current,
+        iconStyle: current.iconStyle === "custom" ? "heart" : current.iconStyle,
+        customIconUrl: null,
+      };
+      await saveWishlistSettings(admin, settings);
+      return { ok: true, settings };
+    }
+
     const current = await getWishlistSettings(admin);
     const settings: WishlistSettings = {
       ...current,
-      iconStyle: current.iconStyle === "custom" ? "heart" : current.iconStyle,
-      customIconUrl: null,
+      iconStyle: (formData.get("iconStyle") as WishlistSettings["iconStyle"]) || "heart",
+      presentationMode: (formData.get("presentationMode") as WishlistSettings["presentationMode"]) || "drawer",
+      triggerEnabled: formData.get("triggerEnabled") === "true",
+      triggerPosition: (formData.get("triggerPosition") as WishlistSettings["triggerPosition"]) || "bottom-right",
+      headerIconEnabled: formData.get("headerIconEnabled") === "true",
+      headerIconPosition: (formData.get("headerIconPosition") as WishlistSettings["headerIconPosition"]) || "right",
     };
+
     await saveWishlistSettings(admin, settings);
     return { ok: true, settings };
+  } catch (error) {
+    console.error("[wishlist] settings action failed", error);
+    return { error: error instanceof Error ? error.message : "Something went wrong - please try again." };
   }
-
-  const current = await getWishlistSettings(admin);
-  const settings: WishlistSettings = {
-    ...current,
-    iconStyle: (formData.get("iconStyle") as WishlistSettings["iconStyle"]) || "heart",
-    presentationMode: (formData.get("presentationMode") as WishlistSettings["presentationMode"]) || "drawer",
-    triggerEnabled: formData.get("triggerEnabled") === "true",
-    triggerPosition: (formData.get("triggerPosition") as WishlistSettings["triggerPosition"]) || "bottom-right",
-    headerIconEnabled: formData.get("headerIconEnabled") === "true",
-    headerIconPosition: (formData.get("headerIconPosition") as WishlistSettings["headerIconPosition"]) || "right",
-  };
-
-  await saveWishlistSettings(admin, settings);
-  return { ok: true, settings };
 };
 
 export default function Settings() {
-  const { settings: initial } = useLoaderData<typeof loader>();
+  const { settings: initial, loadError } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const iconFetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
@@ -71,8 +77,20 @@ export default function Settings() {
   const uploadingIcon = iconFetcher.state !== "idle";
 
   useEffect(() => {
-    if (fetcher.data && "ok" in fetcher.data && fetcher.data.ok) {
+    if (loadError) {
+      shopify.toast.show("Couldn't load your current settings - showing defaults. Refresh and try again.", {
+        isError: true,
+      });
+    }
+  }, [loadError, shopify]);
+
+  useEffect(() => {
+    if (!fetcher.data) return;
+    if ("ok" in fetcher.data && fetcher.data.ok) {
       shopify.toast.show("Settings saved");
+    }
+    if ("error" in fetcher.data && fetcher.data.error) {
+      shopify.toast.show(fetcher.data.error, { isError: true });
     }
   }, [fetcher.data, shopify]);
 
