@@ -38,8 +38,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       </div>
       <ul class="wishlist-page__list wishlist-drawer__list" data-wishlist-list hidden></ul>
     </div>
-
-    {{ 'wishlist.css' | asset_url | stylesheet_tag }}
-    <script src="{{ 'wishlist.js' | asset_url }}" defer></script>
   `);
 };

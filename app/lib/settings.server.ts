@@ -69,13 +69,17 @@ export async function saveWishlistSettings(admin: AdminApiContext, settings: Wis
 
   const metafields = [
     { key: "icon_style", type: "single_line_text_field", value: settings.iconStyle },
-    { key: "custom_icon_url", type: "single_line_text_field", value: settings.customIconUrl ?? "" },
+    settings.customIconUrl
+      ? { key: "custom_icon_url", type: "single_line_text_field", value: settings.customIconUrl }
+      : null,
     { key: "presentation_mode", type: "single_line_text_field", value: settings.presentationMode },
     { key: "trigger_enabled", type: "boolean", value: String(settings.triggerEnabled) },
     { key: "trigger_position", type: "single_line_text_field", value: settings.triggerPosition },
     { key: "header_icon_enabled", type: "boolean", value: String(settings.headerIconEnabled) },
     { key: "header_icon_position", type: "single_line_text_field", value: settings.headerIconPosition },
-  ].map((field) => ({ ...field, namespace: "$app", ownerId }));
+  ]
+    .filter(Boolean)
+    .map((field) => ({ ...field, namespace: "$app", ownerId }));
 
   const response = await admin.graphql(
     `#graphql
@@ -91,6 +95,35 @@ export async function saveWishlistSettings(admin: AdminApiContext, settings: Wis
   );
   const { data } = await response.json();
   const userErrors = data?.metafieldsSet?.userErrors ?? [];
+  if (userErrors.length > 0) {
+    throw new Error(userErrors.map((e: { message: string }) => e.message).join("; "));
+  }
+}
+
+export async function deleteCustomIconMetafield(admin: AdminApiContext) {
+  const shopResponse = await admin.graphql(`#graphql
+    query WishlistSettingsShopIdForDelete {
+      shop {
+        id
+      }
+    }`);
+  const { data: shopData } = await shopResponse.json();
+  const ownerId = shopData.shop.id;
+
+  const response = await admin.graphql(
+    `#graphql
+    mutation WishlistCustomIconDelete($metafields: [MetafieldIdentifierInput!]!) {
+      metafieldsDelete(metafields: $metafields) {
+        userErrors {
+          field
+          message
+        }
+      }
+    }`,
+    { variables: { metafields: [{ ownerId, namespace: "$app", key: "custom_icon_url" }] } },
+  );
+  const { data } = await response.json();
+  const userErrors = data?.metafieldsDelete?.userErrors ?? [];
   if (userErrors.length > 0) {
     throw new Error(userErrors.map((e: { message: string }) => e.message).join("; "));
   }

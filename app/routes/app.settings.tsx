@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { DEFAULT_SETTINGS, getWishlistSettings, saveWishlistSettings, uploadCustomIcon } from "../lib/settings.server";
+import {
+  DEFAULT_SETTINGS,
+  deleteCustomIconMetafield,
+  getWishlistSettings,
+  saveWishlistSettings,
+  uploadCustomIcon,
+} from "../lib/settings.server";
 import type { WishlistSettings } from "../lib/settings.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -44,6 +50,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         customIconUrl: null,
       };
       await saveWishlistSettings(admin, settings);
+      await deleteCustomIconMetafield(admin);
       return { ok: true, settings };
     }
 
