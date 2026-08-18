@@ -63,7 +63,7 @@ export default function Index() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("[wishlist] CSV export failed", error);
-      shopify.toast.show("Export failed — please try again", { isError: true });
+      shopify.toast.show("Export failed - please try again", { isError: true });
     } finally {
       setExporting(false);
     }

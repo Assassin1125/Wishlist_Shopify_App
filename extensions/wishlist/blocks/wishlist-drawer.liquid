@@ -5,6 +5,7 @@
 </style>
 
 {% assign icon_style = shop.metafields['$app']['icon_style'] | default: 'heart' %}
+{% assign custom_icon_url = shop.metafields['$app']['custom_icon_url'] %}
 {% assign presentation_mode = shop.metafields['$app']['presentation_mode'] | default: 'drawer' %}
 {% assign trigger_position = shop.metafields['$app']['trigger_position'] | default: 'bottom-right' %}
 {% assign header_icon_position = shop.metafields['$app']['header_icon_position'] | default: 'right' %}
@@ -53,7 +54,7 @@
       </div>
       <div class="wishlist-drawer__body">
         <div class="wishlist-drawer__empty" data-wishlist-empty>
-          <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon', style: icon_style %}</span>
+          <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon', style: icon_style, custom_icon_url: custom_icon_url %}</span>
           <p>{{ 'wishlist.drawer.empty' | t }}</p>
         </div>
         <ul class="wishlist-drawer__list" data-wishlist-list hidden></ul>
@@ -69,7 +70,7 @@
     data-wishlist-drawer-open
     aria-label="{{ 'wishlist.trigger.label' | t }}"
   >
-    {% render 'wishlist-heart-icon', style: icon_style %}
+    {% render 'wishlist-heart-icon', style: icon_style, custom_icon_url: custom_icon_url %}
     <span class="wishlist-drawer-trigger__count" data-wishlist-count hidden>0</span>
   </button>
 {% endif %}
@@ -81,7 +82,7 @@
     data-wishlist-drawer-open
     aria-label="{{ 'wishlist.trigger.label' | t }}"
   >
-    {% render 'wishlist-heart-icon', style: icon_style %}
+    {% render 'wishlist-heart-icon', style: icon_style, custom_icon_url: custom_icon_url %}
     <span class="wishlist-header-icon__count" data-wishlist-count hidden>0</span>
   </button>
 {% endif %}

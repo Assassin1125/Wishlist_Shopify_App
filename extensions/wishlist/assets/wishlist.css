@@ -73,6 +73,16 @@
   color: var(--wishlist-accent, #e0245e);
 }
 
+.wishlist-heart-icon--custom {
+  object-fit: contain;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.wishlist-button.is-active .wishlist-heart-icon--custom {
+  opacity: 1;
+}
+
 .wishlist-button--pop {
   animation: wishlist-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -121,9 +131,35 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Applied by wishlist.js once the icon is moved next to the theme's own
+   header icons, instead of staying pinned to the viewport corner. */
+.wishlist-header-icon--inline {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: auto;
+  height: auto;
+  margin: 0 6px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.wishlist-header-icon--inline:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
 .wishlist-header-icon .wishlist-heart-icon {
   width: 20px;
   height: 20px;
+}
+
+.wishlist-header-icon--inline .wishlist-heart-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .wishlist-header-icon__count[hidden] {

@@ -1,3 +1,6 @@
+{% assign icon_style = shop.metafields['$app']['icon_style'] | default: 'heart' %}
+{% assign custom_icon_url = shop.metafields['$app']['custom_icon_url'] %}
+
 <button
   type="button"
   class="wishlist-button wishlist-button--{{ block.settings.size }} wishlist-button--{{ block.settings.style }}"
@@ -10,7 +13,7 @@
   data-label-remove="{{ 'wishlist.button.remove' | t | escape }}"
   {{ block.shopify_attributes }}
 >
-  {% render 'wishlist-heart-icon' %}
+  {% render 'wishlist-heart-icon', style: icon_style, custom_icon_url: custom_icon_url %}
 </button>
 
 {% schema %}

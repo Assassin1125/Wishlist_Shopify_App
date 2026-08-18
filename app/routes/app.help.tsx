@@ -15,7 +15,7 @@ export default function Help() {
           Go to <strong>Online Store → Themes → Customize</strong>, open{" "}
           <strong>App embeds</strong> (the icon in the bottom-left of the
           editor), and turn on <strong>Wishlist</strong>. This one switch
-          loads everything — the floating wishlist button, the header icon
+          loads everything - the floating wishlist button, the header icon
           (if enabled below), and the wishlist drawer or page.
         </s-paragraph>
       </s-section>
@@ -34,7 +34,7 @@ export default function Help() {
           Use the <strong>Settings</strong> page to choose the icon style,
           whether the wishlist opens as a drawer or a full page, and whether
           the floating button and/or header icon are shown (and on which
-          side). These apply instantly — no need to touch the theme editor
+          side). These apply instantly - no need to touch the theme editor
           again after step 1.
         </s-paragraph>
       </s-section>
@@ -43,7 +43,7 @@ export default function Help() {
         <s-paragraph>
           The <strong>Dashboard</strong> shows total wishlist adds,
           wishlist→cart and wishlist→purchase conversion rates, a 30-day
-          trend, and your most-wishlisted products — with a CSV export for
+          trend, and your most-wishlisted products - with a CSV export for
           merchandising.
         </s-paragraph>
       </s-section>
@@ -51,7 +51,7 @@ export default function Help() {
       <s-section heading="Good to know">
         <s-unordered-list>
           <s-list-item>
-            Guests can wishlist without an account — it merges into their
+            Guests can wishlist without an account - it merges into their
             wishlist automatically the next time they&apos;re logged in.
           </s-list-item>
           <s-list-item>

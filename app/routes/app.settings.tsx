@@ -1,10 +1,10 @@
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { getWishlistSettings, saveWishlistSettings } from "../lib/settings.server";
+import { getWishlistSettings, saveWishlistSettings, uploadCustomIcon } from "../lib/settings.server";
 import type { WishlistSettings } from "../lib/settings.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -16,8 +16,38 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
+  const intent = formData.get("intent");
 
+  if (intent === "uploadIcon") {
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { error: "Choose an image file to upload." };
+    }
+    const current = await getWishlistSettings(admin);
+    try {
+      const customIconUrl = await uploadCustomIcon(admin, file);
+      const settings: WishlistSettings = { ...current, iconStyle: "custom", customIconUrl };
+      await saveWishlistSettings(admin, settings);
+      return { ok: true, settings };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Icon upload failed." };
+    }
+  }
+
+  if (intent === "removeIcon") {
+    const current = await getWishlistSettings(admin);
+    const settings: WishlistSettings = {
+      ...current,
+      iconStyle: current.iconStyle === "custom" ? "heart" : current.iconStyle,
+      customIconUrl: null,
+    };
+    await saveWishlistSettings(admin, settings);
+    return { ok: true, settings };
+  }
+
+  const current = await getWishlistSettings(admin);
   const settings: WishlistSettings = {
+    ...current,
     iconStyle: (formData.get("iconStyle") as WishlistSettings["iconStyle"]) || "heart",
     presentationMode: (formData.get("presentationMode") as WishlistSettings["presentationMode"]) || "drawer",
     triggerEnabled: formData.get("triggerEnabled") === "true",
@@ -27,21 +57,35 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   };
 
   await saveWishlistSettings(admin, settings);
-  return { ok: true };
+  return { ok: true, settings };
 };
 
 export default function Settings() {
   const { settings: initial } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const iconFetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const [settings, setSettings] = useState<WishlistSettings>(initial);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const saving = fetcher.state !== "idle";
+  const uploadingIcon = iconFetcher.state !== "idle";
 
   useEffect(() => {
-    if (fetcher.data?.ok) {
+    if (fetcher.data && "ok" in fetcher.data && fetcher.data.ok) {
       shopify.toast.show("Settings saved");
     }
   }, [fetcher.data, shopify]);
+
+  useEffect(() => {
+    if (!iconFetcher.data) return;
+    if ("settings" in iconFetcher.data && iconFetcher.data.settings) {
+      setSettings(iconFetcher.data.settings);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+    if ("error" in iconFetcher.data && iconFetcher.data.error) {
+      shopify.toast.show(iconFetcher.data.error, { isError: true });
+    }
+  }, [iconFetcher.data, shopify]);
 
   function update<K extends keyof WishlistSettings>(key: K, value: WishlistSettings[K]) {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -61,6 +105,19 @@ export default function Settings() {
     );
   }
 
+  function handleUploadIcon(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const uploadData = new FormData();
+    uploadData.set("intent", "uploadIcon");
+    uploadData.set("file", file);
+    iconFetcher.submit(uploadData, { method: "POST", encType: "multipart/form-data" });
+  }
+
+  function handleRemoveIcon() {
+    iconFetcher.submit({ intent: "removeIcon" }, { method: "POST" });
+  }
+
   return (
     <s-page heading="Settings">
       <s-button slot="primary-action" onClick={handleSave} {...(saving ? { loading: true } : {})}>
@@ -69,9 +126,9 @@ export default function Settings() {
 
       <s-section heading="Wishlist icon">
         <s-paragraph>
-          Choose the icon shoppers click to save an item. Used on product
-          cards, the product page, and the header icon if it&apos;s turned on
-          below.
+          Choose the icon shoppers click to save an item, or upload your own.
+          Used on product cards, the product page, and the header icon if
+          it&apos;s turned on below.
         </s-paragraph>
         <s-select
           name="iconStyle"
@@ -84,7 +141,38 @@ export default function Settings() {
           <s-option value="heart">Heart</s-option>
           <s-option value="star">Star</s-option>
           <s-option value="bookmark">Bookmark</s-option>
+          <s-option value="custom">Custom upload</s-option>
         </s-select>
+
+        {settings.iconStyle === "custom" && (
+          <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "12px" }}>
+            {settings.customIconUrl ? (
+              <>
+                <img
+                  src={settings.customIconUrl}
+                  alt="Custom wishlist icon"
+                  width={32}
+                  height={32}
+                  style={{ objectFit: "contain" }}
+                />
+                <s-button onClick={handleRemoveIcon} {...(uploadingIcon ? { loading: true } : {})}>
+                  Remove custom icon
+                </s-button>
+              </>
+            ) : (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml"
+                  onChange={handleUploadIcon}
+                  disabled={uploadingIcon}
+                />
+                {uploadingIcon && <s-text tone="neutral">Uploading…</s-text>}
+              </>
+            )}
+          </div>
+        )}
       </s-section>
 
       <s-section heading="How the wishlist opens">
@@ -135,8 +223,8 @@ export default function Settings() {
 
       <s-section heading="Header icon">
         <s-paragraph>
-          Adds a wishlist icon directly into your theme&apos;s header, next to
-          the cart and account icons, with a live item count badge.
+          Adds a wishlist icon next to your theme&apos;s account icon, with a
+          live item count badge.
         </s-paragraph>
         <s-switch
           name="headerIconEnabled"

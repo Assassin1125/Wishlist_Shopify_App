@@ -469,11 +469,32 @@
     });
   }, 400);
 
+  function findHeaderAccountLink() {
+    var header = document.querySelector("header, [role='banner'], .header, .site-header");
+    var scope = header || document;
+    return scope.querySelector("a[href*='/account'], a[href*='/customer_authentication'], a[href*='/challenge']");
+  }
+
+  function placeHeaderIcon() {
+    var icon = document.querySelector(".wishlist-header-icon");
+    if (!icon) return;
+    var anchor = findHeaderAccountLink();
+    if (!anchor || !anchor.parentNode) return;
+
+    icon.classList.add("wishlist-header-icon--inline");
+    if (icon.classList.contains("wishlist-header-icon--left")) {
+      anchor.parentNode.insertBefore(icon, anchor);
+    } else {
+      anchor.parentNode.insertBefore(icon, anchor.nextSibling);
+    }
+  }
+
   async function init() {
     context = parseJsonScript("wishlist-context") || context;
     if (context.customerId != null) context.customerId = String(context.customerId);
     translations = Object.assign({}, translations, parseJsonScript("wishlist-i18n") || {});
 
+    placeHeaderIcon();
     await maybeMergeGuestWishlist();
     await loadState();
   }
