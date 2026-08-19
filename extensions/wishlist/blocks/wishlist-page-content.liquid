@@ -1,0 +1,24 @@
+{% assign icon_style = shop.metafields['$app']['icon_style'] | default: 'heart' %}
+{% assign custom_icon_url = shop.metafields['$app']['custom_icon_url'] %}
+
+<div class="wishlist-page" {{ block.shopify_attributes }}>
+  <h1 class="wishlist-page__title">{{ 'wishlist.drawer.title' | t }}</h1>
+  <div class="wishlist-page__empty" data-wishlist-empty>
+    <span class="wishlist-drawer__empty-icon">{% render 'wishlist-heart-icon', style: icon_style, custom_icon_url: custom_icon_url %}</span>
+    <p>{{ 'wishlist.drawer.empty' | t }}</p>
+  </div>
+  <ul class="wishlist-page__list wishlist-drawer__list" data-wishlist-list hidden></ul>
+</div>
+
+{% schema %}
+{
+  "name": "Wishlist page",
+  "target": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Add this block to a page's template to display the shopper's wishlist there. Requires the site-wide \"Wishlist\" app embed to be turned on, and the app's Settings page set to \"Dedicated page\" with this page's URL entered."
+    }
+  ]
+}
+{% endschema %}

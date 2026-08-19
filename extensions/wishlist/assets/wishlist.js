@@ -8,7 +8,7 @@
   var ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
   var TOAST_DURATION_MS = 2400;
 
-  var context = { customerId: null, shopDomain: null, presentationMode: "drawer" };
+  var context = { customerId: null, shopDomain: null, presentationMode: "drawer", pageUrl: "" };
   var translations = {
     moveToCart: "Move to cart",
     remove: "Remove",
@@ -430,7 +430,7 @@
 
     if (target.closest("[data-wishlist-drawer-open]")) {
       if (context.presentationMode === "page") {
-        window.location.href = "/apps/wishlist/page";
+        window.location.href = context.pageUrl || "/apps/wishlist/page";
       } else {
         openDrawer();
       }

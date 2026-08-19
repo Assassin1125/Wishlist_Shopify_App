@@ -7,6 +7,7 @@
 {% assign icon_style = shop.metafields['$app']['icon_style'] | default: 'heart' %}
 {% assign custom_icon_url = shop.metafields['$app']['custom_icon_url'] %}
 {% assign presentation_mode = shop.metafields['$app']['presentation_mode'] | default: 'drawer' %}
+{% assign wishlist_page_url = shop.metafields['$app']['page_url'] %}
 {% assign trigger_position = shop.metafields['$app']['trigger_position'] | default: 'bottom-right' %}
 {% assign header_icon_position = shop.metafields['$app']['header_icon_position'] | default: 'right' %}
 
@@ -24,7 +25,8 @@
   {
     "shopDomain": {{ shop.permanent_domain | json }},
     "customerId": {{ customer.id | json }},
-    "presentationMode": {{ presentation_mode | json }}
+    "presentationMode": {{ presentation_mode | json }},
+    "pageUrl": {{ wishlist_page_url | json }}
   }
 </script>
 <script type="application/json" id="wishlist-i18n">

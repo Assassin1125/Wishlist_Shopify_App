@@ -4,6 +4,7 @@ export interface WishlistSettings {
   iconStyle: "heart" | "star" | "bookmark" | "custom";
   customIconUrl: string | null;
   presentationMode: "drawer" | "page";
+  pageUrl: string | null;
   triggerEnabled: boolean;
   triggerPosition: "bottom-right" | "bottom-left";
   headerIconEnabled: boolean;
@@ -14,6 +15,7 @@ export const DEFAULT_SETTINGS: WishlistSettings = {
   iconStyle: "heart",
   customIconUrl: null,
   presentationMode: "drawer",
+  pageUrl: null,
   triggerEnabled: true,
   triggerPosition: "bottom-right",
   headerIconEnabled: false,
@@ -43,6 +45,7 @@ export async function getWishlistSettings(admin: AdminApiContext): Promise<Wishl
     customIconUrl: map.get("custom_icon_url") || DEFAULT_SETTINGS.customIconUrl,
     presentationMode:
       (map.get("presentation_mode") as WishlistSettings["presentationMode"]) ?? DEFAULT_SETTINGS.presentationMode,
+    pageUrl: map.get("page_url") || DEFAULT_SETTINGS.pageUrl,
     triggerEnabled: map.has("trigger_enabled")
       ? map.get("trigger_enabled") === "true"
       : DEFAULT_SETTINGS.triggerEnabled,
@@ -67,19 +70,26 @@ export async function saveWishlistSettings(admin: AdminApiContext, settings: Wis
   const { data: shopData } = await shopResponse.json();
   const ownerId = shopData.shop.id;
 
-  const metafields = [
+  const setFields: Array<{ key: string; type: string; value: string }> = [
     { key: "icon_style", type: "single_line_text_field", value: settings.iconStyle },
-    settings.customIconUrl
-      ? { key: "custom_icon_url", type: "single_line_text_field", value: settings.customIconUrl }
-      : null,
     { key: "presentation_mode", type: "single_line_text_field", value: settings.presentationMode },
     { key: "trigger_enabled", type: "boolean", value: String(settings.triggerEnabled) },
     { key: "trigger_position", type: "single_line_text_field", value: settings.triggerPosition },
     { key: "header_icon_enabled", type: "boolean", value: String(settings.headerIconEnabled) },
     { key: "header_icon_position", type: "single_line_text_field", value: settings.headerIconPosition },
-  ]
-    .filter(Boolean)
-    .map((field) => ({ ...field, namespace: "$app", ownerId }));
+  ];
+
+  const optionalFields: Array<{ key: string; value: string | null }> = [
+    { key: "custom_icon_url", value: settings.customIconUrl },
+    { key: "page_url", value: settings.pageUrl },
+  ];
+  for (const field of optionalFields) {
+    if (field.value) {
+      setFields.push({ key: field.key, type: "single_line_text_field", value: field.value });
+    }
+  }
+
+  const metafields = setFields.map((field) => ({ ...field, namespace: "$app", ownerId }));
 
   const response = await admin.graphql(
     `#graphql
@@ -98,34 +108,26 @@ export async function saveWishlistSettings(admin: AdminApiContext, settings: Wis
   if (userErrors.length > 0) {
     throw new Error(userErrors.map((e: { message: string }) => e.message).join("; "));
   }
-}
 
-export async function deleteCustomIconMetafield(admin: AdminApiContext) {
-  const shopResponse = await admin.graphql(`#graphql
-    query WishlistSettingsShopIdForDelete {
-      shop {
-        id
-      }
-    }`);
-  const { data: shopData } = await shopResponse.json();
-  const ownerId = shopData.shop.id;
-
-  const response = await admin.graphql(
-    `#graphql
-    mutation WishlistCustomIconDelete($metafields: [MetafieldIdentifierInput!]!) {
-      metafieldsDelete(metafields: $metafields) {
-        userErrors {
-          field
-          message
+  const keysToDelete = optionalFields.filter((field) => !field.value).map((field) => field.key);
+  if (keysToDelete.length > 0) {
+    const deleteResponse = await admin.graphql(
+      `#graphql
+      mutation WishlistSettingsDelete($metafields: [MetafieldIdentifierInput!]!) {
+        metafieldsDelete(metafields: $metafields) {
+          userErrors {
+            field
+            message
+          }
         }
-      }
-    }`,
-    { variables: { metafields: [{ ownerId, namespace: "$app", key: "custom_icon_url" }] } },
-  );
-  const { data } = await response.json();
-  const userErrors = data?.metafieldsDelete?.userErrors ?? [];
-  if (userErrors.length > 0) {
-    throw new Error(userErrors.map((e: { message: string }) => e.message).join("; "));
+      }`,
+      { variables: { metafields: keysToDelete.map((key) => ({ ownerId, namespace: "$app", key })) } },
+    );
+    const { data: deleteData } = await deleteResponse.json();
+    const deleteErrors = deleteData?.metafieldsDelete?.userErrors ?? [];
+    if (deleteErrors.length > 0) {
+      throw new Error(deleteErrors.map((e: { message: string }) => e.message).join("; "));
+    }
   }
 }
 

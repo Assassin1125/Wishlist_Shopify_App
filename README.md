@@ -97,10 +97,21 @@ NODE_OPTIONS="--dns-result-order=ipv4first" npx shopify app dev --store=your-dev
 automated, Theme App Extensions have to be placed manually):
 
 1. Dev store admin → **Online Store → Themes → Customize**
-2. **App embeds** (bottom-left icon) → toggle on **"Wishlist drawer"**
-   (this is what loads the shared JS/CSS for the whole site)
+2. **App embeds** (bottom-left icon) → toggle on **"Wishlist"** (this is what
+   loads the shared JS/CSS for the whole site: the floating trigger, header
+   icon, and drawer/page behavior)
 3. On a product page or product-card section → **Add block → Apps →
    "Wishlist button"**
+4. Icon style, floating button, header icon, and drawer-vs-page presentation
+   are all controlled from the app's **Settings** page in the admin, not the
+   theme editor.
+
+**Using your own Page for the dedicated wishlist view** (optional - only if
+Settings → Presentation is set to "Dedicated page" and you want a real
+Shopify page instead of the app's built-in fallback route): create a page
+under **Online Store → Pages**, add the **"Wishlist page"** app block to it
+via the theme editor, then paste that page's URL into the **Wishlist page
+URL** field on the app's Settings page.
 
 ## Environment variables
 

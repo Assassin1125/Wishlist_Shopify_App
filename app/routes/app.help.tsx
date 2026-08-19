@@ -39,7 +39,24 @@ export default function Help() {
         </s-paragraph>
       </s-section>
 
-      <s-section heading="4. Check the Dashboard">
+      <s-section heading="4. Optional: use your own Page for the dedicated wishlist view">
+        <s-paragraph>
+          If you set Presentation to &ldquo;Dedicated page&rdquo; in Settings,
+          you can use a normal Shopify page instead of the app&apos;s
+          built-in one - useful if you want full control over its URL,
+          title, or SEO. Go to{" "}
+          <strong>Online Store → Pages → Add page</strong>, save it, then open{" "}
+          <strong>Online Store → Themes → Customize</strong>, switch to that
+          page, and add the <strong>Wishlist page</strong> block to it. Copy
+          the page&apos;s URL (e.g. <code>/pages/wishlist</code>) into the{" "}
+          <strong>Wishlist page URL</strong> field on the Settings page. If
+          you leave that field blank, the wishlist trigger still opens a
+          built-in page automatically - this step is only for merchants who
+          want their own.
+        </s-paragraph>
+      </s-section>
+
+      <s-section heading="5. Check the Dashboard">
         <s-paragraph>
           The <strong>Dashboard</strong> shows total wishlist adds,
           wishlist→cart and wishlist→purchase conversion rates, a 30-day

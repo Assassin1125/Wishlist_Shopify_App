@@ -4,13 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import {
-  DEFAULT_SETTINGS,
-  deleteCustomIconMetafield,
-  getWishlistSettings,
-  saveWishlistSettings,
-  uploadCustomIcon,
-} from "../lib/settings.server";
+import { DEFAULT_SETTINGS, getWishlistSettings, saveWishlistSettings, uploadCustomIcon } from "../lib/settings.server";
 import type { WishlistSettings } from "../lib/settings.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -50,15 +44,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         customIconUrl: null,
       };
       await saveWishlistSettings(admin, settings);
-      await deleteCustomIconMetafield(admin);
       return { ok: true, settings };
     }
 
     const current = await getWishlistSettings(admin);
+    const pageUrl = (formData.get("pageUrl") as string) || "";
     const settings: WishlistSettings = {
       ...current,
       iconStyle: (formData.get("iconStyle") as WishlistSettings["iconStyle"]) || "heart",
       presentationMode: (formData.get("presentationMode") as WishlistSettings["presentationMode"]) || "drawer",
+      pageUrl: pageUrl.trim() || null,
       triggerEnabled: formData.get("triggerEnabled") === "true",
       triggerPosition: (formData.get("triggerPosition") as WishlistSettings["triggerPosition"]) || "bottom-right",
       headerIconEnabled: formData.get("headerIconEnabled") === "true",
@@ -125,6 +120,7 @@ export default function Settings() {
       {
         iconStyle: settings.iconStyle,
         presentationMode: settings.presentationMode,
+        pageUrl: settings.pageUrl ?? "",
         triggerEnabled: String(settings.triggerEnabled),
         triggerPosition: settings.triggerPosition,
         headerIconEnabled: String(settings.headerIconEnabled),
@@ -228,6 +224,19 @@ export default function Settings() {
           <s-option value="drawer">Slide-out drawer</s-option>
           <s-option value="page">Dedicated page</s-option>
         </s-select>
+
+        {settings.presentationMode === "page" && (
+          <div style={{ marginTop: "12px" }}>
+            <s-text-field
+              name="pageUrl"
+              label="Wishlist page URL"
+              placeholder="/pages/wishlist"
+              value={settings.pageUrl ?? ""}
+              details="Create a page under Online Store -> Pages (any title/handle you like), add our 'Wishlist page' block to it in the theme editor, then paste that page's URL here."
+              onChange={(event: Event) => update("pageUrl", (event.target as HTMLInputElement).value)}
+            />
+          </div>
+        )}
       </s-section>
 
       <s-section heading="Floating wishlist button">
